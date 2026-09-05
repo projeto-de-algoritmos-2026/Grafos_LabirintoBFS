@@ -52,3 +52,97 @@ def dfs_explore(graph, start, goal):
     yield {'type': 'exhausted'}
 
 
+def bfs_shortest_path(graph, start, goal):
+    """Retorna o menor caminho entre ``start`` e ``goal``.
+
+    A busca usa uma fila FIFO e um mapa de predecessores. O retorno é uma
+    lista na ordem origem -> destino. Quando a origem e o destino são iguais,
+    retorna ``[start]``; quando o destino é inalcançável, retorna ``None``.
+    """
+    if start == goal:
+        return [start]
+
+    visited = {start}
+    predecessors = {start: None}
+    queue = deque([start])
+
+    while queue:
+        current = queue.popleft()
+
+        for neighbor in graph.neighbors(current):
+            if neighbor in visited:
+                continue
+
+            visited.add(neighbor)
+            predecessors[neighbor] = current
+            queue.append(neighbor)
+
+            if neighbor == goal:
+                path = []
+                node = goal
+                while node is not None:
+                    path.append(node)
+                    node = predecessors[node]
+                path.reverse()
+                return path
+
+    return None
+
+
+def bfs_explore(graph, start, goal):
+    """Percorre *graph* em largura e devolve eventos para a animação.
+
+    O algoritmo mantém um pai para cada vértice descoberto. Assim que o
+    objetivo é encontrado, a cadeia de pais é reconstruída e emitida no
+    evento ``path_found``. Os eventos intermediários carregam a fila e os
+    vértices visitados para que a interface possa animar a busca.
+    """
+    visited = {start}
+    parent = {start: None}
+    queue = deque([start])
+
+    yield {
+        'type': 'visit',
+        'node': start,
+        'from': None,
+        'queue': list(queue),
+        'visited': set(visited),
+    }
+
+    if start == goal:
+        yield {'type': 'path_found', 'path': [start], 'visited': set(visited)}
+        return
+
+    while queue:
+        current = queue.popleft()
+
+        for neighbor in graph.neighbors(current):
+            if neighbor in visited:
+                continue
+
+            visited.add(neighbor)
+            parent[neighbor] = current
+            queue.append(neighbor)
+            yield {
+                'type': 'visit',
+                'node': neighbor,
+                'from': current,
+                'queue': list(queue),
+                'visited': set(visited),
+            }
+
+            if neighbor == goal:
+                path = []
+                node = goal
+                while node is not None:
+                    path.append(node)
+                    node = parent[node]
+                path.reverse()
+                yield {
+                    'type': 'path_found',
+                    'path': path,
+                    'visited': set(visited),
+                }
+                return
+
+    yield {'type': 'exhausted', 'visited': set(visited)}
