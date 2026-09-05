@@ -95,13 +95,28 @@ class App:
             self.done_message = "O DFS explorou tudo e não achou a saída."
 
     def dfs_finished(self):
+        # A transição só pode acontecer uma vez por rodada. Isso também
+        # protege contra chamadas repetidas ao handler de conclusão do DFS.
+        if self.phase != 'DFS_EXPLORANDO':
+            return
+
         print(f"\n[DFS] Saída encontrada em {self.dfs_steps} passos (incluindo backtracks).")
         print(f"[DFS] Grafo explorado: {len(self.graph_explorado)} nós, "
               f"{self.graph_explorado.num_edges()} arestas.")
 
+        self.start_bfs_phase()
+
+    def start_bfs_phase(self):
+        """Inicializa uma única busca BFS da saída até o início."""
+        if self.phase != 'DFS_EXPLORANDO':
+            return
+
         self.bfs_gen = bfs_explore(
             self.graph_explorado, self.goal, self.start
         )
+        self.path = []
+        self.path_index = 0
+        self.bfs_steps = 0
         self.frontier_cells = {self.goal}
         self.phase = 'BFS_CALCULANDO'
         self.done_message = "DFS encontrou a saída. BFS calculando o menor caminho..."
