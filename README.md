@@ -6,7 +6,7 @@ Repositório referente ao trabalho 1 da disciplina de Projeto de Algorítmos 202
 |Matrícula | Aluno |
 | -- | -- |
 | 211062698  |  Marcos Vinícius Lima Bezerra |
-|   |   |
+|   |   | teste
 
 ## Objetivo
 A ideia é construir uma pequena simulação onde um personagem explora um labirinto representado como grafo. O personagem começa buscando a saída usando DFS (busca em profundidade), e ao encontrá-la, usa BFS (busca em largura) para determinar o menor caminho de volta.
