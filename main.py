@@ -16,7 +16,7 @@ import pygame
 import config as cfg
 from maze import generate_maze
 from graph import Graph
-from algorithms import bfs_shortest_path, dfs_explore
+from algorithms import bfs_explore, dfs_explore
 
 
 class App:
@@ -99,7 +99,7 @@ class App:
         print(f"[DFS] Grafo explorado: {len(self.graph_explorado)} nós, "
               f"{self.graph_explorado.num_edges()} arestas.")
 
-        self.bfs_gen = bfs_shortest_path(
+        self.bfs_gen = bfs_explore(
             self.graph_explorado, self.goal, self.start
         )
         self.frontier_cells = {self.goal}
