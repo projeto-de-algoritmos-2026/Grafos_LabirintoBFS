@@ -20,3 +20,9 @@ Após o DFS encontrar a saída, o BFS percorre o grafo explorado para calcular o
 1. O DFS explora o labirinto usando uma pilha e backtracking.
 2. O BFS usa uma fila para encontrar o menor caminho entre a saída e o início.
 3. O personagem volta ao início e segue o caminho mínimo até a saída.
+
+## API do BFS
+
+`bfs_shortest_path(grafo, origem, destino)` retorna uma lista de vértices na
+ordem origem → destino. Se origem e destino forem iguais, retorna uma lista
+com esse único vértice; se o destino não for alcançável, retorna `None`.
