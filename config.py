@@ -16,7 +16,9 @@ MARGIN = 20
 WALL_THICKNESS = 3
 
 WINDOW_WIDTH = COLS * CELL_SIZE + SIDEBAR_WIDTH + MARGIN * 2
-WINDOW_HEIGHT = ROWS * CELL_SIZE + MARGIN * 2
+# A lateral do painel precisa de espaço para a legenda, controles e métricas
+# das fases DFS/BFS, mesmo quando o labirinto é baixo.
+WINDOW_HEIGHT = max(ROWS * CELL_SIZE + MARGIN * 2, 520)
 
 FPS = 60
 

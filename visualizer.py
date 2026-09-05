@@ -122,6 +122,8 @@ class Visualizer:
             (cfg.COLOR_CELL_GOAL, "Saída"),
             (cfg.COLOR_CELL_DFS_CURRENT, "Personagem / atual"),
             (cfg.COLOR_CELL_DFS_VISITED, "Visitado pelo DFS"),
+            (cfg.COLOR_CELL_BFS_FRONTIER, "Fronteira do BFS"),
+            (cfg.COLOR_CELL_PATH, "Menor caminho"),
         ]
         for color, label in legend:
             pygame.draw.rect(self.screen, color, pygame.Rect(x0, y + 3, 14, 14))
@@ -141,6 +143,20 @@ class Visualizer:
 
         y += 6
         write(f"Velocidade: {state['speed']:.1f} passos/s", self.font_small, cfg.COLOR_TEXT_DIM, 20)
+
+        y += 4
+        phase_labels = {
+            'DFS_EXPLORANDO': 'DFS explorando',
+            'BFS_CALCULANDO': 'BFS calculando',
+            'VOLTANDO_AO_INICIO': 'Voltando ao início',
+            'INDO_PARA_SAIDA': 'Indo para a saída',
+            'CONCLUIDO': 'Concluído',
+        }
+        write(f"Fase: {phase_labels.get(state['phase'], state['phase'])}", self.font_small)
+        write(f"Passos DFS: {state['dfs_steps']}", self.font_small, cfg.COLOR_TEXT_DIM, 20)
+        write(f"Fila BFS: {state['queue_size']}", self.font_small, cfg.COLOR_TEXT_DIM, 20)
+        if state['path_length']:
+            write(f"Menor caminho: {state['path_length']} arestas", self.font_small, cfg.COLOR_TEXT_DIM, 20)
 
     @staticmethod
     def _wrap_text(text, max_chars):
