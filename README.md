@@ -26,3 +26,11 @@ Após o DFS encontrar a saída, o BFS percorre o grafo explorado para calcular o
 `bfs_shortest_path(grafo, origem, destino)` retorna uma lista de vértices na
 ordem origem → destino. Se origem e destino forem iguais, retorna uma lista
 com esse único vértice; se o destino não for alcançável, retorna `None`.
+
+## Testes
+
+Execute a suíte unitária com:
+
+```bash
+python -m unittest discover -s tests -v
+```
