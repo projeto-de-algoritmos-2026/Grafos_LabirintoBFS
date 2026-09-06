@@ -154,9 +154,39 @@ class Visualizer:
         }
         write(f"Fase: {phase_labels.get(state['phase'], state['phase'])}", self.font_small)
         write(f"Passos DFS: {state['dfs_steps']}", self.font_small, cfg.COLOR_TEXT_DIM, 20)
-        write(f"Fila BFS: {state['queue_size']}", self.font_small, cfg.COLOR_TEXT_DIM, 20)
-        if state['path_length']:
-            write(f"Menor caminho: {state['path_length']} arestas", self.font_small, cfg.COLOR_TEXT_DIM, 20)
+        write(f"Células visitadas: {len(state['visited'])}", self.font_small, cfg.COLOR_TEXT_DIM, 20)
+        write(f"Pilha DFS: {len(state['stack'])}", self.font_small, cfg.COLOR_TEXT_DIM, 20)
+        write(f"Fila BFS: {len(state['queue'])}", self.font_small, cfg.COLOR_TEXT_DIM, 20)
+        write(f"Menor caminho: {state['path_length']} arestas", self.font_small, cfg.COLOR_TEXT_DIM, 20)
+
+        write(
+            f"Pilha: {self._summarize_nodes(state['stack'])}",
+            self.font_small, cfg.COLOR_TEXT_DIM, 20,
+        )
+        write(
+            f"Fila: {self._summarize_nodes(state['queue'])}",
+            self.font_small, cfg.COLOR_TEXT_DIM, 20,
+        )
+        write(
+            f"Visitadas: {self._summarize_nodes(state['visited'])}",
+            self.font_small, cfg.COLOR_TEXT_DIM, 20,
+        )
+        if state['done_message']:
+            for line in self._wrap_text(state['done_message'], 42)[:2]:
+                write(f"Status: {line}", self.font_small, cfg.COLOR_TEXT_DIM, 18)
+
+    @staticmethod
+    def _summarize_nodes(nodes, limit=4):
+        """Formata uma coleção de células sem deixar o painel crescer."""
+        if not nodes:
+            return "—"
+
+        formatted = [str(node) for node in nodes[:limit]]
+        summary = ", ".join(formatted)
+        remaining = len(nodes) - limit
+        if remaining > 0:
+            summary += f" ... (+{remaining})"
+        return summary
 
     @staticmethod
     def _wrap_text(text, max_chars):

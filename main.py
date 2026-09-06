@@ -57,6 +57,7 @@ class App:
         self.character_pos = self.start
         self.visited_cells = {self.start}
         self.frontier_cells = set()
+        self.frontier_queue = []
         self.dfs_steps = 0
         self.bfs_steps = 0
         self.path_steps = 0
@@ -118,6 +119,7 @@ class App:
         self.path_index = 0
         self.bfs_steps = 0
         self.frontier_cells = {self.goal}
+        self.frontier_queue = [self.goal]
         self.phase = 'BFS_CALCULANDO'
         self.done_message = "DFS encontrou a saída. BFS calculando o menor caminho..."
 
@@ -131,7 +133,8 @@ class App:
             return
 
         self.bfs_steps += 1
-        self.frontier_cells = set(event.get('queue', []))
+        self.frontier_queue = list(event.get('queue', []))
+        self.frontier_cells = set(self.frontier_queue)
 
         if event['type'] == 'visit':
             self.visited_cells.update(event.get('visited', set()))
@@ -139,6 +142,7 @@ class App:
             self.path = event['path']
             self.path_index = 0
             self.frontier_cells.clear()
+            self.frontier_queue.clear()
             self.character_pos = self.path[0]
             self.phase = 'VOLTANDO_AO_INICIO'
             self.done_message = (
@@ -154,6 +158,7 @@ class App:
         if not self.path:
             self.phase = 'CONCLUIDO'
             self.frontier_cells.clear()
+            self.frontier_queue.clear()
             self.done_message = "Nenhum caminho foi encontrado; retorno encerrado com segurança."
             return
 
@@ -261,6 +266,20 @@ class App:
 
         return states
 
+    def build_sidebar_state(self):
+        """Monta o snapshot de dados exibido pelo painel lateral."""
+        return {
+            'speed': self.speed,
+            'phase': self.phase,
+            'dfs_steps': self.dfs_steps,
+            'bfs_steps': self.bfs_steps,
+            'path_length': max(0, len(self.path) - 1),
+            'stack': list(self._last_stack),
+            'queue': list(self.frontier_queue),
+            'visited': sorted(self.visited_cells),
+            'done_message': self.done_message,
+        }
+
     def draw(self):
         self.viz.draw_background()
         self.viz.draw_cells(self.build_cell_states())
@@ -269,17 +288,7 @@ class App:
         if self.phase != 'DFS_EXPLORANDO':
             self.viz.draw_character(self.character_pos)
 
-        state = {
-            'speed': self.speed,
-            'phase': self.phase,
-            'dfs_steps': self.dfs_steps,
-            'bfs_steps': self.bfs_steps,
-            'path_length': max(0, len(self.path) - 1),
-            'stack_size': len(self._last_stack),
-            'queue_size': len(self.frontier_cells),
-            'done_message': self.done_message,
-        }
-        self.viz.draw_sidebar(state)
+        self.viz.draw_sidebar(self.build_sidebar_state())
 
 
 if __name__ == '__main__':
