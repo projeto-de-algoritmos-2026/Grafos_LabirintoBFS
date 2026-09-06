@@ -126,6 +126,9 @@ python -m unittest discover -s tests -v
 
 - `ModuleNotFoundError: No module named 'pygame'`: ative o ambiente virtual e
   execute `python -m pip install -r requirements.txt`.
+- Em Python 3.14 com Pygame 2.6.1, a aplicação usa automaticamente o backend
+  `freetype` para contornar a importação circular do módulo de fontes. O aviso
+  sobre AVX2 na inicialização é apenas informativo e não impede a execução.
 - A janela não abre em um servidor ou terminal remoto sem display: execute em
   uma sessão com ambiente gráfico; a suíte unitária continua disponível para
   validar a lógica sem interface.
