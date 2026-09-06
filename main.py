@@ -151,25 +151,40 @@ class App:
 
     def step_path(self):
         """Anda uma célula no caminho calculado pelo BFS."""
+        if not self.path:
+            self.phase = 'CONCLUIDO'
+            self.frontier_cells.clear()
+            self.done_message = "Nenhum caminho foi encontrado; retorno encerrado com segurança."
+            return
+
         if self.path_index + 1 >= len(self.path):
-            if self.phase == 'VOLTANDO_AO_INICIO':
-                self.path = list(reversed(self.path))
-                self.path_index = 0
-                self.character_pos = self.path[0]
-                self.phase = 'INDO_PARA_SAIDA'
-                self.done_message = "De volta ao início. Seguindo o menor caminho até a saída..."
-            else:
-                self.phase = 'CONCLUIDO'
-                self.character_pos = self.goal
-                self.done_message = (
-                    f"Concluído! DFS: {self.dfs_steps} passos; "
-                    f"menor caminho: {len(self.path) - 1} arestas."
-                )
+            self.finish_path_leg()
             return
 
         self.path_index += 1
         self.character_pos = self.path[self.path_index]
         self.path_steps += 1
+
+        # A chegada à última célula já conclui esta perna, sem emitir um
+        # segundo evento de movimento para a mesma posição.
+        if self.path_index + 1 >= len(self.path):
+            self.finish_path_leg()
+
+    def finish_path_leg(self):
+        """Transiciona após concluir uma das pernas do caminho do BFS."""
+        if self.phase == 'VOLTANDO_AO_INICIO':
+            self.path = list(reversed(self.path))
+            self.path_index = 0
+            self.character_pos = self.path[0]
+            self.phase = 'INDO_PARA_SAIDA'
+            self.done_message = "De volta ao início. Seguindo o menor caminho até a saída..."
+        else:
+            self.phase = 'CONCLUIDO'
+            self.character_pos = self.goal
+            self.done_message = (
+                f"Concluído! DFS: {self.dfs_steps} passos; "
+                f"menor caminho: {len(self.path) - 1} arestas."
+            )
 
 
 
