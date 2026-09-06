@@ -49,6 +49,7 @@ class Visualizer:
             'unvisited': cfg.COLOR_CELL_UNVISITED,
             'dfs_visited': cfg.COLOR_CELL_DFS_VISITED,
             'dfs_current': cfg.COLOR_CELL_DFS_CURRENT,
+            'bfs_visited': cfg.COLOR_CELL_BFS_VISITED,
             'bfs_frontier': cfg.COLOR_CELL_BFS_FRONTIER,
             'path': cfg.COLOR_CELL_PATH,
             'start': cfg.COLOR_CELL_START,
@@ -120,10 +121,11 @@ class Visualizer:
         legend = [
             (cfg.COLOR_CELL_START, "Início"),
             (cfg.COLOR_CELL_GOAL, "Saída"),
-            (cfg.COLOR_CELL_DFS_CURRENT, "Personagem / atual"),
-            (cfg.COLOR_CELL_DFS_VISITED, "Visitado pelo DFS"),
-            (cfg.COLOR_CELL_BFS_FRONTIER, "Fronteira do BFS"),
-            (cfg.COLOR_CELL_PATH, "Menor caminho"),
+            (cfg.COLOR_CELL_DFS_CURRENT, "Célula atual do DFS"),
+            (cfg.COLOR_CELL_DFS_VISITED, "Área explorada pelo DFS"),
+            (cfg.COLOR_CELL_BFS_VISITED, "Visitado pelo BFS"),
+            (cfg.COLOR_CELL_BFS_FRONTIER, "Fronteira da fila BFS"),
+            (cfg.COLOR_CELL_PATH, "Caminho mínimo do BFS"),
         ]
         for color, label in legend:
             pygame.draw.rect(self.screen, color, pygame.Rect(x0, y + 3, 14, 14))

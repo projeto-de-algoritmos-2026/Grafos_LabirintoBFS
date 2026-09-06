@@ -56,6 +56,8 @@ class App:
 
         self.character_pos = self.start
         self.visited_cells = {self.start}
+        self.dfs_visited_cells = {self.start}
+        self.bfs_visited_cells = set()
         self.frontier_cells = set()
         self.frontier_queue = []
         self.dfs_steps = 0
@@ -82,6 +84,7 @@ class App:
             from_node = event['from']
             self.character_pos = to_node
             self.visited_cells.add(to_node)
+            self.dfs_visited_cells.add(to_node)
             self.dfs_steps += 1
             if 'stack' in event:
                 self._last_stack = event['stack']
@@ -138,6 +141,7 @@ class App:
 
         if event['type'] == 'visit':
             self.visited_cells.update(event.get('visited', set()))
+            self.bfs_visited_cells.update(event.get('visited', set()))
         elif event['type'] == 'path_found':
             self.path = event['path']
             self.path_index = 0
@@ -248,8 +252,11 @@ class App:
     # ------------------------------------------------------------------ #
     def build_cell_states(self):
         states = {}
-        for node in self.visited_cells:
+        for node in self.dfs_visited_cells:
             states[node] = 'dfs_visited'
+
+        for node in self.bfs_visited_cells:
+            states[node] = 'bfs_visited'
 
         if self.phase == 'BFS_CALCULANDO':
             for node in self.frontier_cells:

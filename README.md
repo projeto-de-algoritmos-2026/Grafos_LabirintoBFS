@@ -21,6 +21,25 @@ Após o DFS encontrar a saída, o BFS percorre o grafo explorado para calcular o
 2. O BFS usa uma fila para encontrar o menor caminho entre a saída e o início.
 3. O personagem volta ao início e segue o caminho mínimo até a saída.
 
+## DFS versus BFS
+
+As duas buscas têm papéis diferentes na simulação:
+
+| Algoritmo | Estrutura | Estratégia | Objetivo na aplicação |
+| --- | --- | --- | --- |
+| DFS | Pilha (LIFO) | Aprofunda por um caminho e faz backtracking nos becos sem saída | Explorar o labirinto até encontrar a saída |
+| BFS | Fila (FIFO) | Visita os vértices por camadas, expandindo a fronteira | Encontrar o menor caminho entre a saída e o início |
+
+As cores da animação acompanham essas fases: azul escuro representa a área
+explorada pelo DFS, azul claro representa células já visitadas pelo BFS, roxo
+representa a fronteira atual da fila BFS e verde representa o caminho mínimo
+encontrado. A célula amarela indica a posição atual durante o DFS; o
+personagem é desenhado em branco durante o BFS e o retorno pelo caminho.
+
+O BFS opera sobre o `graph_explorado`, isto é, o subgrafo construído pelo DFS
+até a saída. Como o labirinto gerado é uma árvore perfeita, esse caminho é o
+caminho mínimo do labirinto.
+
 ## API do BFS
 
 `bfs_shortest_path(grafo, origem, destino)` retorna uma lista de vértices na
