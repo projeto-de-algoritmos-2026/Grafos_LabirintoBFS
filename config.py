@@ -38,6 +38,7 @@ COLOR_WALL = (230, 230, 235)
 COLOR_CELL_UNVISITED = (40, 43, 56)
 COLOR_CELL_DFS_VISITED = (61, 90, 128)      # trilha do DFS (grafo explorado)
 COLOR_CELL_DFS_CURRENT = (247, 199, 68)      # célula atual durante o DFS
+COLOR_CELL_BFS_VISITED = (108, 137, 183)     # célula já visitada pelo BFS
 COLOR_CELL_BFS_FRONTIER = (156, 107, 219)    # fronteira sendo visitada pelo BFS
 COLOR_CELL_PATH = (76, 201, 138)             # caminho ótimo encontrado pelo BFS
 COLOR_CELL_START = (46, 139, 87)

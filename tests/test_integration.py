@@ -156,6 +156,27 @@ class AppBfsIntegrationTests(unittest.TestCase):
         self.assertEqual(during_bfs['queue'], app.frontier_queue)
         self.assertEqual(during_bfs['visited'], sorted(app.visited_cells))
 
+    def test_dfs_and_bfs_use_distinct_visual_states(self):
+        app = self.App()
+        self.assertEqual(app.build_cell_states()[app.start], 'dfs_current')
+
+        while app.phase == 'DFS_EXPLORANDO':
+            app.step_dfs()
+        while app.phase == 'BFS_CALCULANDO':
+            app.step_bfs()
+            candidates = (
+                app.bfs_visited_cells
+                - app.frontier_cells
+                - {app.start, app.goal}
+            )
+            if candidates:
+                break
+
+        states = app.build_cell_states()
+        self.assertTrue(app.bfs_visited_cells)
+        self.assertIn('bfs_visited', set(states.values()))
+        self.assertIn('bfs_frontier', set(states.values()))
+
 
 if __name__ == '__main__':
     unittest.main()
