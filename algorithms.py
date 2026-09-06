@@ -3,11 +3,13 @@ import random
 from collections import deque
 
 
-def dfs_explore(graph, start, goal):
+def dfs_explore(graph, start, goal, seed=None):
+    """Explora o grafo com DFS, usando uma ordem reproduzível quando pedida."""
 
     visited = {start}
     stack = [start]
     neighbor_order = {}  # cache da ordem embaralhada de vizinhos por nó
+    rng = random if seed is None else random.Random(seed)
 
     yield {'type': 'move', 'from': None, 'to': start, 'action': 'start', 'stack': list(stack)}
 
@@ -20,7 +22,7 @@ def dfs_explore(graph, start, goal):
 
         if current not in neighbor_order:
             nbrs = list(graph.neighbors(current))
-            random.shuffle(nbrs)
+            rng.shuffle(nbrs)
             neighbor_order[current] = nbrs
 
         next_node = None

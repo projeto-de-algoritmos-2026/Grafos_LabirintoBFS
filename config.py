@@ -9,6 +9,9 @@ Configurações globais do projeto: dimensões, cores e parâmetros de animaçã
 COLS = 10
 ROWS = 7
 
+# Seed usada na primeira janela. None mantém a geração aleatória.
+DEFAULT_SEED = None
+
 # --- Dimensões visuais ---
 CELL_SIZE = 56
 SIDEBAR_WIDTH = 360
@@ -18,7 +21,7 @@ WALL_THICKNESS = 3
 WINDOW_WIDTH = COLS * CELL_SIZE + SIDEBAR_WIDTH + MARGIN * 2
 # A lateral do painel precisa de espaço para a legenda, controles e métricas
 # das fases DFS/BFS, mesmo quando o labirinto é baixo.
-WINDOW_HEIGHT = max(ROWS * CELL_SIZE + MARGIN * 2, 600)
+WINDOW_HEIGHT = max(ROWS * CELL_SIZE + MARGIN * 2, 640)
 
 FPS = 60
 

@@ -21,6 +21,17 @@ Após o DFS encontrar a saída, o BFS percorre o grafo explorado para calcular o
 2. O BFS usa uma fila para encontrar o menor caminho entre a saída e o início.
 3. O personagem volta ao início e segue o caminho mínimo até a saída.
 
+## Cenários reproduzíveis
+
+Cada rodada exibe a seed usada no painel lateral. A tecla `R` cria um novo
+labirinto com uma seed aleatória; a tecla `S` repete o cenário atual usando a
+mesma seed. Para iniciar sempre com uma seed conhecida, defina
+`DEFAULT_SEED` em `config.py` ou chame `App.new_maze(seed=123)`.
+
+Quando nenhuma seed é informada, uma seed aleatória é gerada automaticamente.
+A mesma seed controla tanto a geração do labirinto quanto a ordem aleatória da
+exploração DFS, permitindo repetir o fluxo completo DFS → BFS.
+
 ## DFS versus BFS
 
 As duas buscas têm papéis diferentes na simulação:

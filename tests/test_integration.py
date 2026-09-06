@@ -177,6 +177,26 @@ class AppBfsIntegrationTests(unittest.TestCase):
         self.assertIn('bfs_visited', set(states.values()))
         self.assertIn('bfs_frontier', set(states.values()))
 
+    def test_same_seed_restarts_the_same_scenario(self):
+        app = self.App()
+        app.new_maze(seed=9876)
+        first_grid = tuple(
+            tuple(tuple(cell.walls.items()) for cell in row)
+            for row in app.grid
+        )
+        first_seed = app.seed
+
+        app.new_maze(seed=9876)
+        second_grid = tuple(
+            tuple(tuple(cell.walls.items()) for cell in row)
+            for row in app.grid
+        )
+
+        self.assertEqual(first_seed, 9876)
+        self.assertEqual(app.seed, 9876)
+        self.assertEqual(app.build_sidebar_state()['seed'], 9876)
+        self.assertEqual(first_grid, second_grid)
+
 
 if __name__ == '__main__':
     unittest.main()
