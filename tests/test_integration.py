@@ -132,6 +132,30 @@ class AppBfsIntegrationTests(unittest.TestCase):
         self.assertEqual(app.character_pos, app.start)
         self.assertEqual(app.frontier_cells, set())
 
+    def test_sidebar_snapshot_tracks_algorithm_structures(self):
+        app = self.App()
+
+        initial = app.build_sidebar_state()
+        self.assertEqual(initial['phase'], 'DFS_EXPLORANDO')
+        self.assertEqual(initial['stack'], [app.start])
+        self.assertEqual(initial['queue'], [])
+        self.assertEqual(initial['visited'], [app.start])
+        self.assertEqual(initial['dfs_steps'], 0)
+        self.assertEqual(initial['path_length'], 0)
+
+        app.step_dfs()
+        during_dfs = app.build_sidebar_state()
+        self.assertEqual(during_dfs['stack'], app._last_stack)
+        self.assertEqual(during_dfs['visited'], sorted(app.visited_cells))
+
+        while app.phase == 'DFS_EXPLORANDO':
+            app.step_dfs()
+        app.step_bfs()
+        during_bfs = app.build_sidebar_state()
+        self.assertEqual(during_bfs['phase'], 'BFS_CALCULANDO')
+        self.assertEqual(during_bfs['queue'], app.frontier_queue)
+        self.assertEqual(during_bfs['visited'], sorted(app.visited_cells))
+
 
 if __name__ == '__main__':
     unittest.main()
