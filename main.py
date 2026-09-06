@@ -10,6 +10,7 @@ ida até a saída.
 Rode com:  python main.py
 """
 
+import random
 import sys
 import pygame
 
@@ -33,14 +34,18 @@ class App:
         self.paused = False
         self.running = True
 
-        self.new_maze()
+        self.new_maze(seed=cfg.DEFAULT_SEED)
 
     # ------------------------------------------------------------------ #
     # (Re)inicialização de uma rodada
     # ------------------------------------------------------------------ #
     def new_maze(self, seed=None):
+        if seed is None:
+            seed = random.SystemRandom().randrange(0, 2 ** 32)
+        self.seed = seed
+
         self.grid, self.graph_completo, self.start, self.goal = generate_maze(
-            cfg.COLS, cfg.ROWS, seed=seed
+            cfg.COLS, cfg.ROWS, seed=self.seed
         )
 
         # Grafo 2: começa vazio, só com o nó inicial. É preenchido conforme
@@ -48,7 +53,9 @@ class App:
         self.graph_explorado = Graph()
         self.graph_explorado.add_node(self.start)
 
-        self.dfs_gen = dfs_explore(self.graph_completo, self.start, self.goal)
+        self.dfs_gen = dfs_explore(
+            self.graph_completo, self.start, self.goal, seed=self.seed
+        )
 
         self.bfs_gen = None
         self.path = []
@@ -223,6 +230,9 @@ class App:
                 elif event.key == pygame.K_r:
                     self.new_maze()
                     self.paused = False
+                elif event.key == pygame.K_s:
+                    self.new_maze(seed=self.seed)
+                    self.paused = False
                 elif event.key in (pygame.K_PLUS, pygame.K_EQUALS, pygame.K_KP_PLUS):
                     self.speed = min(cfg.MAX_STEPS_PER_SEC, self.speed * 1.4)
                 elif event.key in (pygame.K_MINUS, pygame.K_KP_MINUS):
@@ -277,6 +287,7 @@ class App:
         """Monta o snapshot de dados exibido pelo painel lateral."""
         return {
             'speed': self.speed,
+            'seed': self.seed,
             'phase': self.phase,
             'dfs_steps': self.dfs_steps,
             'bfs_steps': self.bfs_steps,

@@ -138,6 +138,7 @@ class Visualizer:
         for line in [
             "ESPAÇO — pausar / continuar",
             "R — novo labirinto",
+            "S — repetir cenário atual",
             "+ / -  — velocidade",
             "ESC — sair",
         ]:
@@ -145,6 +146,7 @@ class Visualizer:
 
         y += 6
         write(f"Velocidade: {state['speed']:.1f} passos/s", self.font_small, cfg.COLOR_TEXT_DIM, 20)
+        write(f"Seed: {state['seed']}", self.font_small, cfg.COLOR_TEXT_DIM, 20)
 
         y += 4
         phase_labels = {
