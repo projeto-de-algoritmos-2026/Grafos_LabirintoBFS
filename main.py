@@ -95,13 +95,28 @@ class App:
             self.done_message = "O DFS explorou tudo e não achou a saída."
 
     def dfs_finished(self):
+        # A transição só pode acontecer uma vez por rodada. Isso também
+        # protege contra chamadas repetidas ao handler de conclusão do DFS.
+        if self.phase != 'DFS_EXPLORANDO':
+            return
+
         print(f"\n[DFS] Saída encontrada em {self.dfs_steps} passos (incluindo backtracks).")
         print(f"[DFS] Grafo explorado: {len(self.graph_explorado)} nós, "
               f"{self.graph_explorado.num_edges()} arestas.")
 
+        self.start_bfs_phase()
+
+    def start_bfs_phase(self):
+        """Inicializa uma única busca BFS da saída até o início."""
+        if self.phase != 'DFS_EXPLORANDO':
+            return
+
         self.bfs_gen = bfs_explore(
             self.graph_explorado, self.goal, self.start
         )
+        self.path = []
+        self.path_index = 0
+        self.bfs_steps = 0
         self.frontier_cells = {self.goal}
         self.phase = 'BFS_CALCULANDO'
         self.done_message = "DFS encontrou a saída. BFS calculando o menor caminho..."
@@ -136,25 +151,40 @@ class App:
 
     def step_path(self):
         """Anda uma célula no caminho calculado pelo BFS."""
+        if not self.path:
+            self.phase = 'CONCLUIDO'
+            self.frontier_cells.clear()
+            self.done_message = "Nenhum caminho foi encontrado; retorno encerrado com segurança."
+            return
+
         if self.path_index + 1 >= len(self.path):
-            if self.phase == 'VOLTANDO_AO_INICIO':
-                self.path = list(reversed(self.path))
-                self.path_index = 0
-                self.character_pos = self.path[0]
-                self.phase = 'INDO_PARA_SAIDA'
-                self.done_message = "De volta ao início. Seguindo o menor caminho até a saída..."
-            else:
-                self.phase = 'CONCLUIDO'
-                self.character_pos = self.goal
-                self.done_message = (
-                    f"Concluído! DFS: {self.dfs_steps} passos; "
-                    f"menor caminho: {len(self.path) - 1} arestas."
-                )
+            self.finish_path_leg()
             return
 
         self.path_index += 1
         self.character_pos = self.path[self.path_index]
         self.path_steps += 1
+
+        # A chegada à última célula já conclui esta perna, sem emitir um
+        # segundo evento de movimento para a mesma posição.
+        if self.path_index + 1 >= len(self.path):
+            self.finish_path_leg()
+
+    def finish_path_leg(self):
+        """Transiciona após concluir uma das pernas do caminho do BFS."""
+        if self.phase == 'VOLTANDO_AO_INICIO':
+            self.path = list(reversed(self.path))
+            self.path_index = 0
+            self.character_pos = self.path[0]
+            self.phase = 'INDO_PARA_SAIDA'
+            self.done_message = "De volta ao início. Seguindo o menor caminho até a saída..."
+        else:
+            self.phase = 'CONCLUIDO'
+            self.character_pos = self.goal
+            self.done_message = (
+                f"Concluído! DFS: {self.dfs_steps} passos; "
+                f"menor caminho: {len(self.path) - 1} arestas."
+            )
 
 
 
