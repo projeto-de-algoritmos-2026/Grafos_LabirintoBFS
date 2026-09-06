@@ -71,6 +71,67 @@ class AppBfsIntegrationTests(unittest.TestCase):
         self.assertEqual(app.path, [])
         self.assertIn('não encontrou', app.done_message)
 
+    def test_return_animation_follows_path_cell_by_cell(self):
+        app = self.App()
+
+        while app.phase == 'DFS_EXPLORANDO':
+            app.step_dfs()
+        while app.phase == 'BFS_CALCULANDO':
+            app.step_bfs()
+
+        return_path = list(app.path)
+        states = app.build_cell_states()
+        self.assertEqual(states[app.start], 'start')
+        self.assertEqual(states[app.goal], 'goal')
+        for node in return_path[1:-1]:
+            self.assertEqual(states[node], 'path')
+
+        visited_on_return = []
+        while app.phase == 'VOLTANDO_AO_INICIO':
+            app.step_path()
+            visited_on_return.append(app.character_pos)
+
+        self.assertEqual(visited_on_return, return_path[1:])
+        self.assertEqual(app.character_pos, app.start)
+        self.assertEqual(app.phase, 'INDO_PARA_SAIDA')
+
+        outgoing_path = list(app.path)
+        visited_on_outgoing = []
+        while app.phase == 'INDO_PARA_SAIDA':
+            app.step_path()
+            visited_on_outgoing.append(app.character_pos)
+
+        self.assertEqual(visited_on_outgoing, outgoing_path[1:])
+        self.assertEqual(app.character_pos, app.goal)
+        self.assertEqual(app.phase, 'CONCLUIDO')
+
+    def test_empty_path_finishes_without_moving(self):
+        app = self.App()
+        original_position = app.character_pos
+        app.path = []
+        app.path_index = 0
+        app.phase = 'VOLTANDO_AO_INICIO'
+
+        app.step_path()
+
+        self.assertEqual(app.phase, 'CONCLUIDO')
+        self.assertEqual(app.character_pos, original_position)
+        self.assertIn('Nenhum caminho', app.done_message)
+
+    def test_new_maze_resets_path_animation(self):
+        app = self.App()
+        app.path = [app.goal, app.start]
+        app.path_index = 1
+        app.phase = 'INDO_PARA_SAIDA'
+
+        app.new_maze(seed=123)
+
+        self.assertEqual(app.phase, 'DFS_EXPLORANDO')
+        self.assertEqual(app.path, [])
+        self.assertEqual(app.path_index, 0)
+        self.assertEqual(app.character_pos, app.start)
+        self.assertEqual(app.frontier_cells, set())
+
 
 if __name__ == '__main__':
     unittest.main()
