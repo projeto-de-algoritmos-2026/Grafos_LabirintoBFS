@@ -6,8 +6,8 @@ Configurações globais do projeto: dimensões, cores e parâmetros de animaçã
 # --- Dimensões do labirinto (em células) ---
 # Mantendo pequeno por enquanto, só para validar visualmente se DFS e BFS
 # estão corretos antes de mexer na UI/UX.
-COLS = 10
-ROWS = 7
+COLS = 20
+ROWS = 15
 
 # Seed usada na primeira janela. None mantém a geração aleatória.
 DEFAULT_SEED = None
