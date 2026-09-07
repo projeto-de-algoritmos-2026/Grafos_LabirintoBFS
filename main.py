@@ -12,6 +12,7 @@ Rode com:  python main.py
 
 import random
 import sys
+import time
 import pygame
 
 import config as cfg
@@ -75,6 +76,25 @@ class App:
         self.time_accumulator = 0.0
         self.done_message = ""
 
+        # --- Timer das etapas ---
+        # Tempo de parede (não compensa a velocidade de animação escolhida):
+        # só marca o instante em que a rodada começou e, mais adiante,
+        # o instante (relativo a esse início) em que cada etapa termina.
+        self.round_start_time = time.perf_counter()
+        self.stage_times = {}  # ex.: {'dfs': 1.23, 'bfs': 1.87, ...}
+
+    # ------------------------------------------------------------------ #
+    # Timer das etapas
+    # ------------------------------------------------------------------ #
+    def _record_stage_time(self, key):
+        """
+        Guarda, em `self.stage_times[key]`, quantos segundos (reais, de
+        parede) se passaram desde o início da rodada até agora. Não mexe
+        de novo numa etapa que já foi marcada.
+        """
+        if key not in self.stage_times:
+            self.stage_times[key] = time.perf_counter() - self.round_start_time
+
     # ------------------------------------------------------------------ #
     # Avanço de um "passo lógico" do algoritmo ativo
     # ------------------------------------------------------------------ #
@@ -84,6 +104,7 @@ class App:
         except StopIteration:
             self.phase = 'CONCLUIDO'
             self.done_message = "DFS terminou sem achar a saída (não deveria acontecer aqui)."
+            self._record_stage_time('total')
             return
 
         if event['type'] == 'move':
@@ -104,6 +125,7 @@ class App:
         elif event['type'] == 'exhausted':
             self.phase = 'CONCLUIDO'
             self.done_message = "O DFS explorou tudo e não achou a saída."
+            self._record_stage_time('total')
 
     def dfs_finished(self):
         # A transição só pode acontecer uma vez por rodada. Isso também
@@ -111,9 +133,11 @@ class App:
         if self.phase != 'DFS_EXPLORANDO':
             return
 
+        self._record_stage_time('dfs')
         print(f"\n[DFS] Saída encontrada em {self.dfs_steps} passos (incluindo backtracks).")
         print(f"[DFS] Grafo explorado: {len(self.graph_explorado)} nós, "
               f"{self.graph_explorado.num_edges()} arestas.")
+        print(f"[TIMER] DFS achou a saída em {self.stage_times['dfs']:.3f}s.")
 
         self.start_bfs_phase()
 
@@ -140,6 +164,7 @@ class App:
         except StopIteration:
             self.phase = 'CONCLUIDO'
             self.done_message = "BFS terminou sem encontrar um caminho."
+            self._record_stage_time('total')
             return
 
         self.bfs_steps += 1
@@ -156,6 +181,8 @@ class App:
             self.frontier_queue.clear()
             self.character_pos = self.path[0]
             self.phase = 'VOLTANDO_AO_INICIO'
+            self._record_stage_time('bfs')
+            print(f"[TIMER] BFS achou o menor caminho em {self.stage_times['bfs']:.3f}s.")
             self.done_message = (
                 f"Menor caminho encontrado: {len(self.path) - 1} arestas. "
                 "Voltando ao início..."
@@ -163,6 +190,7 @@ class App:
         elif event['type'] == 'exhausted':
             self.phase = 'CONCLUIDO'
             self.done_message = "BFS não encontrou um caminho até o início."
+            self._record_stage_time('total')
 
     def step_path(self):
         """Anda uma célula no caminho calculado pelo BFS."""
@@ -171,6 +199,7 @@ class App:
             self.frontier_cells.clear()
             self.frontier_queue.clear()
             self.done_message = "Nenhum caminho foi encontrado; retorno encerrado com segurança."
+            self._record_stage_time('total')
             return
 
         if self.path_index + 1 >= len(self.path):
@@ -189,6 +218,8 @@ class App:
     def finish_path_leg(self):
         """Transiciona após concluir uma das pernas do caminho do BFS."""
         if self.phase == 'VOLTANDO_AO_INICIO':
+            self._record_stage_time('volta')
+            print(f"[TIMER] Personagem chegou ao início em {self.stage_times['volta']:.3f}s.")
             self.path = list(reversed(self.path))
             self.path_index = 0
             self.character_pos = self.path[0]
@@ -197,6 +228,9 @@ class App:
         else:
             self.phase = 'CONCLUIDO'
             self.character_pos = self.goal
+            self._record_stage_time('saida')
+            self._record_stage_time('total')
+            print(f"[TIMER] Personagem chegou de volta na saída em {self.stage_times['saida']:.3f}s.")
             self.done_message = (
                 f"Concluído! DFS: {self.dfs_steps} passos; "
                 f"menor caminho: {len(self.path) - 1} arestas."
@@ -296,6 +330,8 @@ class App:
             'queue': list(self.frontier_queue),
             'visited': sorted(self.visited_cells),
             'done_message': self.done_message,
+            'stage_times': dict(self.stage_times),
+            'elapsed_now': time.perf_counter() - self.round_start_time,
         }
 
     def draw(self):
