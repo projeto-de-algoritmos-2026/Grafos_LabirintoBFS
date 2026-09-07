@@ -5,16 +5,61 @@ as células coloridas de acordo com o estado do algoritmo, o personagem, e o
 painel lateral (HUD) com status, contadores e a pilha/fila do algoritmo atual.
 """
 
+import sys
+
 import pygame
 import config as cfg
+
+
+# Pygame 2.6.1 possui uma importação circular em pygame.font no Python 3.14.
+# Nesse ambiente, evita-se até tentar carregar o módulo problemático.
+_USE_FREETYPE_FALLBACK = sys.version_info >= (3, 14)
+
+
+class _FreetypeFontAdapter:
+    """Adapta pygame._freetype.Font à API usada pelo desenhador."""
+
+    def __init__(self, font):
+        self.font = font
+
+    def render(self, text, antialias, color):
+        surface, _ = self.font.render(text, fgcolor=color)
+        return surface
+
+
+def _make_font(size, bold=False):
+    """Cria uma fonte mesmo quando pygame.font falha no Python 3.14.
+
+    Pygame 2.6.1 pode deixar pygame.font/sysfont em importação circular em
+    algumas versões recentes do Python. O backend _freetype não passa por
+    esse caminho e expõe renderização equivalente para o painel.
+    """
+    global _USE_FREETYPE_FALLBACK
+
+    if not _USE_FREETYPE_FALLBACK:
+        try:
+            return pygame.font.SysFont(cfg.FONT_NAME, size, bold=bold)
+        except (ImportError, NotImplementedError):
+            _USE_FREETYPE_FALLBACK = True
+
+    try:
+        import pygame._freetype as freetype
+    except (ImportError, ModuleNotFoundError):
+        # Permite usar doubles de teste e builds antigas sem _freetype.
+        return pygame.font.SysFont(cfg.FONT_NAME, size, bold=bold)
+
+    freetype.init()
+    font = freetype.Font(None, size)
+    font.strong = bold
+    return _FreetypeFontAdapter(font)
 
 
 class Visualizer:
     def __init__(self, screen):
         self.screen = screen
-        self.font_title = pygame.font.SysFont(cfg.FONT_NAME, cfg.FONT_SIZE_TITLE, bold=True)
-        self.font_normal = pygame.font.SysFont(cfg.FONT_NAME, cfg.FONT_SIZE_NORMAL)
-        self.font_small = pygame.font.SysFont(cfg.FONT_NAME, cfg.FONT_SIZE_SMALL)
+        self.font_title = _make_font(cfg.FONT_SIZE_TITLE, bold=True)
+        self.font_normal = _make_font(cfg.FONT_SIZE_NORMAL)
+        self.font_small = _make_font(cfg.FONT_SIZE_SMALL)
 
     # ------------------------------------------------------------------ #
     # Coordenadas
