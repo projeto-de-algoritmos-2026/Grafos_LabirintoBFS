@@ -1,6 +1,7 @@
 
-# GRAFOS - G45
-Repositório referente ao trabalho 1 da disciplina de Projeto de Algorítmos 2026.2
+# LabirintoBFS
+Número da Lista: 45
+Conteúdo da Disciplina: Grafos
 
 ## Alunos
 |Matrícula | Aluno |
@@ -8,10 +9,18 @@ Repositório referente ao trabalho 1 da disciplina de Projeto de Algorítmos 202
 | 211062698  |  Marcos Vinícius Lima Bezerra |
 | 241031852  | Matheus Lemes Amaral |
 
-## Objetivo
-A ideia é construir uma pequena simulação onde um personagem explora um labirinto representado como grafo. O personagem começa buscando a saída usando DFS (busca em profundidade), e ao encontrá-la, usa BFS (busca em largura) para determinar o menor caminho de volta.
+## Sobre
+O LabirintoBFS é uma pequena simulação onde um personagem explora um labirinto representado como grafo. O personagem começa buscando a saída usando DFS (busca em profundidade), e ao encontrá-la, usa BFS (busca em largura) para determinar o menor caminho de volta.
 
 O objetivo é usar essa exploração como forma de visualizar, na prática, o funcionamento dos dois algoritmos — como cada um percorre o grafo, quais estruturas de dados usa (pilha vs. fila) e as diferenças de comportamento entre eles.
+
+## Link para o vídeo
+[Link para o vídeo da entrega](https://www.youtube.com/watch?v=Z9eZ8AmLLGA)
+<iframe width="560" height="315" src="https://www.youtube.com/embed/Z9eZ8AmLLGA?si=JlpDzuTQOWNFhl8F" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+## Screenshots
+![DFS rodando](image.png)
+![BFS Bidirecional](image-1.png)
 
 ## Instalação e execução
 
@@ -62,7 +71,7 @@ Quando nenhuma seed é informada, uma seed aleatória é gerada automaticamente.
 A mesma seed controla tanto a geração do labirinto quanto a ordem aleatória da
 exploração DFS, permitindo repetir o fluxo completo DFS → BFS.
 
-## Controles
+## Uso
 
 | Tecla | Ação |
 | --- | --- |
