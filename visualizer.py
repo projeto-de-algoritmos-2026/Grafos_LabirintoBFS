@@ -51,6 +51,11 @@ class Visualizer:
             'dfs_current': cfg.COLOR_CELL_DFS_CURRENT,
             'bfs_visited': cfg.COLOR_CELL_BFS_VISITED,
             'bfs_frontier': cfg.COLOR_CELL_BFS_FRONTIER,
+            'bidir_a': cfg.COLOR_CELL_BIDIR_A,
+            'bidir_b': cfg.COLOR_CELL_BIDIR_B,
+            'bidir_frontier_a': cfg.COLOR_CELL_BIDIR_FRONTIER_A,
+            'bidir_frontier_b': cfg.COLOR_CELL_BIDIR_FRONTIER_B,
+            'bidir_meeting': cfg.COLOR_CELL_BIDIR_MEETING,
             'path': cfg.COLOR_CELL_PATH,
             'start': cfg.COLOR_CELL_START,
             'goal': cfg.COLOR_CELL_GOAL,
@@ -90,6 +95,34 @@ class Visualizer:
     # ------------------------------------------------------------------ #
     # HUD / Painel lateral
     # ------------------------------------------------------------------ #
+    def _draw_timer_block(self, write, divider, state):
+        """Mostra, no topo do painel, o tempo (real, de parede) gasto até
+        cada etapa terminar. Não tenta compensar a velocidade de animação —
+        é só o cronômetro solto desde o início da rodada."""
+        write("Tempos das etapas:", self.font_normal, cfg.COLOR_TEXT_DIM, 22)
+        stage_times = state.get('stage_times', {})
+        labels = [
+            ('dfs', "DFS achou a saída"),
+            ('bfs', "BFS achou o caminho"),
+            ('volta', "Chegou ao início"),
+            ('saida', "Chegou de novo na saída"),
+        ]
+        for key, label in labels:
+            if key in stage_times:
+                value = f"{stage_times[key]:.2f}s"
+                color = cfg.COLOR_TEXT
+            else:
+                value = "—"
+                color = cfg.COLOR_TEXT_DIM
+            write(f"{label}: {value}", self.font_small, color, 20)
+
+        if 'total' in stage_times and 'saida' not in stage_times:
+            # Terminou sem sucesso (ex.: caminho não encontrado).
+            write(f"Encerrado em: {stage_times['total']:.2f}s", self.font_small, cfg.COLOR_TEXT, 20)
+
+        write(f"Tempo decorrido: {state['elapsed_now']:.1f}s", self.font_small, cfg.COLOR_TEXT_DIM, 20)
+        divider()
+
     def draw_sidebar(self, state):
         """
         state: dict com as chaves usadas para montar o texto do painel.
@@ -117,6 +150,8 @@ class Visualizer:
         write("Projeto PA - Grafos", self.font_title, cfg.COLOR_TEXT_ACCENT, line_h_title)
         divider()
 
+        self._draw_timer_block(write, divider, state)
+
         write("Legenda:", self.font_normal, cfg.COLOR_TEXT_DIM, 22)
         legend = [
             (cfg.COLOR_CELL_START, "Início"),
@@ -141,6 +176,7 @@ class Visualizer:
             "S — repetir cenário atual",
             "+ / -  — velocidade",
             "ESC — sair",
+            "X — repete com BFS bidirecional"
         ]:
             write(line, self.font_small, cfg.COLOR_TEXT, 20)
 

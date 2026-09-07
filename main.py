@@ -18,7 +18,7 @@ import pygame
 import config as cfg
 from maze import generate_maze
 from graph import Graph
-from algorithms import bfs_explore, dfs_explore
+from algorithms import bfs_explore, bidirectional_bfs_explore, dfs_explore
 
 
 class App:
@@ -35,12 +35,18 @@ class App:
         self.paused = False
         self.running = True
 
-        self.new_maze(seed=cfg.DEFAULT_SEED)
+        # Últimos tempos de "menor caminho" de cada algoritmo, para comparar
+        # entre rodadas (não é resetado por new_maze — sobrevive entre
+        # apertos de R/S/X, só reseta se você fechar e abrir o app de novo).
+        self.last_times = {'bfs': None, 'bidirectional': None}
+
+        self.new_maze(seed=cfg.DEFAULT_SEED, algorithm='bfs')
 
     # ------------------------------------------------------------------ #
     # (Re)inicialização de uma rodada
     # ------------------------------------------------------------------ #
-    def new_maze(self, seed=None):
+    def new_maze(self, seed=None, algorithm='bfs'):
+        self.algorithm = algorithm
         if seed is None:
             seed = random.SystemRandom().randrange(0, 2 ** 32)
         self.seed = seed
@@ -59,6 +65,7 @@ class App:
         )
 
         self.bfs_gen = None
+        self.bidir_gen = None
         self.path = []
         self.path_index = 0
 
@@ -71,6 +78,16 @@ class App:
         self.dfs_steps = 0
         self.bfs_steps = 0
         self.path_steps = 0
+
+        # Estado específico do BFS bidirecional (existe sempre, mesmo em
+        # rodadas que usam o BFS comum, pra desenho/painel não quebrarem).
+        self.bidir_steps = 0
+        self.bidir_visited_a = set()   # frente que sai da saída (self.goal)
+        self.bidir_visited_b = set()   # frente que sai do início (self.start)
+        self.bidir_frontier_a = set()
+        self.bidir_frontier_b = set()
+        self.bidir_meeting_node = None
+
         self._last_stack = [self.start]
         self.phase = 'DFS_EXPLORANDO'
         self.time_accumulator = 0.0
@@ -139,7 +156,10 @@ class App:
               f"{self.graph_explorado.num_edges()} arestas.")
         print(f"[TIMER] DFS achou a saída em {self.stage_times['dfs']:.3f}s.")
 
-        self.start_bfs_phase()
+        if self.algorithm == 'bidirectional':
+            self.start_bidirectional_phase()
+        else:
+            self.start_bfs_phase()
 
     def start_bfs_phase(self):
         """Inicializa uma única busca BFS da saída até o início."""
@@ -181,8 +201,10 @@ class App:
             self.frontier_queue.clear()
             self.character_pos = self.path[0]
             self.phase = 'VOLTANDO_AO_INICIO'
-            self._record_stage_time('bfs')
-            print(f"[TIMER] BFS achou o menor caminho em {self.stage_times['bfs']:.3f}s.")
+            self._record_stage_time('shortest_path')
+            self.last_times['bfs'] = self.stage_times['shortest_path']
+            print(f"[TIMER] BFS achou o menor caminho em {self.stage_times['shortest_path']:.3f}s "
+                  f"(nós visitados: {len(self.bfs_visited_cells)}).")
             self.done_message = (
                 f"Menor caminho encontrado: {len(self.path) - 1} arestas. "
                 "Voltando ao início..."
@@ -190,6 +212,69 @@ class App:
         elif event['type'] == 'exhausted':
             self.phase = 'CONCLUIDO'
             self.done_message = "BFS não encontrou um caminho até o início."
+            self._record_stage_time('total')
+
+    def start_bidirectional_phase(self):
+        """Inicializa o BFS bidirecional (uma frente na saída, outra no início)."""
+        if self.phase != 'DFS_EXPLORANDO':
+            return
+
+        self.bidir_gen = bidirectional_bfs_explore(
+            self.graph_explorado, self.goal, self.start
+        )
+        self.path = []
+        self.path_index = 0
+        self.bidir_steps = 0
+        self.bidir_visited_a = {self.goal}
+        self.bidir_visited_b = {self.start}
+        self.bidir_frontier_a = {self.goal}
+        self.bidir_frontier_b = {self.start}
+        self.bidir_meeting_node = None
+        self.phase = 'BIDIRECIONAL_CALCULANDO'
+        self.done_message = (
+            "DFS encontrou a saída. Bidirecional calculando o menor caminho "
+            "(uma frente da saída, outra do início)..."
+        )
+
+    def step_bidirectional_bfs(self):
+        """Processa um evento do BFS bidirecional e prepara a caminhada."""
+        try:
+            event = next(self.bidir_gen)
+        except StopIteration:
+            self.phase = 'CONCLUIDO'
+            self.done_message = "Bidirecional terminou sem encontrar um caminho."
+            self._record_stage_time('total')
+            return
+
+        self.bidir_steps += 1
+
+        if event['type'] == 'visit':
+            self.bidir_visited_a = set(event.get('visited_a', self.bidir_visited_a))
+            self.bidir_visited_b = set(event.get('visited_b', self.bidir_visited_b))
+            self.bidir_frontier_a = set(event.get('queue_a', []))
+            self.bidir_frontier_b = set(event.get('queue_b', []))
+            self.visited_cells.update(self.bidir_visited_a)
+            self.visited_cells.update(self.bidir_visited_b)
+        elif event['type'] == 'path_found':
+            self.path = event['path']
+            self.path_index = 0
+            self.bidir_meeting_node = event.get('meeting_node')
+            self.bidir_frontier_a = set()
+            self.bidir_frontier_b = set()
+            self.character_pos = self.path[0]
+            self.phase = 'VOLTANDO_AO_INICIO'
+            self._record_stage_time('shortest_path')
+            self.last_times['bidirectional'] = self.stage_times['shortest_path']
+            total_visitados = len(self.bidir_visited_a | self.bidir_visited_b)
+            print(f"[TIMER] Bidirecional achou o menor caminho em "
+                  f"{self.stage_times['shortest_path']:.3f}s (nós visitados: {total_visitados}).")
+            self.done_message = (
+                f"Menor caminho encontrado (bidirecional): {len(self.path) - 1} arestas. "
+                "Voltando ao início..."
+            )
+        elif event['type'] == 'exhausted':
+            self.phase = 'CONCLUIDO'
+            self.done_message = "Bidirecional não encontrou um caminho até o início."
             self._record_stage_time('total')
 
     def step_path(self):
@@ -262,10 +347,13 @@ class App:
                 elif event.key == pygame.K_SPACE:
                     self.paused = not self.paused
                 elif event.key == pygame.K_r:
-                    self.new_maze()
+                    self.new_maze(algorithm='bfs')
                     self.paused = False
                 elif event.key == pygame.K_s:
-                    self.new_maze(seed=self.seed)
+                    self.new_maze(seed=self.seed, algorithm=self.algorithm)
+                    self.paused = False
+                elif event.key == pygame.K_x:
+                    self.new_maze(seed=self.seed, algorithm='bidirectional')
                     self.paused = False
                 elif event.key in (pygame.K_PLUS, pygame.K_EQUALS, pygame.K_KP_PLUS):
                     self.speed = min(cfg.MAX_STEPS_PER_SEC, self.speed * 1.4)
@@ -277,7 +365,7 @@ class App:
             return
 
         speed = self.speed
-        if self.phase == 'BFS_CALCULANDO':
+        if self.phase in ('BFS_CALCULANDO', 'BIDIRECIONAL_CALCULANDO'):
             speed *= cfg.BFS_SPEED_MULTIPLIER
         self.time_accumulator += dt * speed
         while self.time_accumulator >= 1.0:
@@ -286,6 +374,8 @@ class App:
                 self.step_dfs()
             elif self.phase == 'BFS_CALCULANDO':
                 self.step_bfs()
+            elif self.phase == 'BIDIRECIONAL_CALCULANDO':
+                self.step_bidirectional_bfs()
             elif self.phase in ('VOLTANDO_AO_INICIO', 'INDO_PARA_SAIDA'):
                 self.step_path()
             else:
@@ -302,12 +392,27 @@ class App:
         for node in self.bfs_visited_cells:
             states[node] = 'bfs_visited'
 
+        # Marcação persistente das duas frentes do bidirecional (fica visível
+        # mesmo depois de terminar a busca, igual ao bfs_visited_cells acima).
+        for node in self.bidir_visited_a:
+            states[node] = 'bidir_a'
+        for node in self.bidir_visited_b:
+            states[node] = 'bidir_b'
+
         if self.phase == 'BFS_CALCULANDO':
             for node in self.frontier_cells:
                 states[node] = 'bfs_frontier'
+        elif self.phase == 'BIDIRECIONAL_CALCULANDO':
+            for node in self.bidir_frontier_a:
+                states[node] = 'bidir_frontier_a'
+            for node in self.bidir_frontier_b:
+                states[node] = 'bidir_frontier_b'
         elif self.phase in ('VOLTANDO_AO_INICIO', 'INDO_PARA_SAIDA'):
             for node in self.path:
                 states[node] = 'path'
+
+        if self.bidir_meeting_node is not None:
+            states[self.bidir_meeting_node] = 'bidir_meeting'
 
         states[self.start] = 'start'
         states[self.goal] = 'goal'
@@ -323,8 +428,10 @@ class App:
             'speed': self.speed,
             'seed': self.seed,
             'phase': self.phase,
+            'algorithm': self.algorithm,
             'dfs_steps': self.dfs_steps,
             'bfs_steps': self.bfs_steps,
+            'bidir_steps': self.bidir_steps,
             'path_length': max(0, len(self.path) - 1),
             'stack': list(self._last_stack),
             'queue': list(self.frontier_queue),
@@ -332,6 +439,7 @@ class App:
             'done_message': self.done_message,
             'stage_times': dict(self.stage_times),
             'elapsed_now': time.perf_counter() - self.round_start_time,
+            'last_times': dict(self.last_times),
         }
 
     def draw(self):
