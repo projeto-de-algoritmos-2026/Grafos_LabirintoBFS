@@ -49,12 +49,13 @@ Após o DFS encontrar a saída, o BFS percorre o grafo explorado para calcular o
 1. O DFS explora o labirinto usando uma pilha e backtracking.
 2. O BFS usa uma fila para encontrar o menor caminho entre a saída e o início.
 3. O personagem volta ao início e segue o caminho mínimo até a saída.
+4. No console é exibido o tempo de cada etapa do labirinto
 
 ## Cenários reproduzíveis
 
 Cada rodada exibe a seed usada no painel lateral. A tecla `R` cria um novo
 labirinto com uma seed aleatória; a tecla `S` repete o cenário atual usando a
-mesma seed. Para iniciar sempre com uma seed conhecida, defina
+mesma seed; a tecla `X` repete o cenário atual porém utilizando um BFS Bidirecional para encontrar o menor caminho. Para iniciar sempre com uma seed conhecida, defina
 `DEFAULT_SEED` em `config.py` ou chame `App.new_maze(seed=123)`.
 
 Quando nenhuma seed é informada, uma seed aleatória é gerada automaticamente.
@@ -70,6 +71,7 @@ exploração DFS, permitindo repetir o fluxo completo DFS → BFS.
 | `S` | Reinicia o mesmo cenário usando a seed exibida |
 | `+` / `-` | Aumenta ou diminui a velocidade |
 | `ESC` | Encerra a aplicação |
+| `X` | Reinicia o mesmo cenário utilizando um BFS Bidirecional |
 
 ## Interface e estados
 
@@ -89,6 +91,17 @@ As fases aparecem no painel com estes nomes:
 As cores da legenda identificam início, saída, área do DFS, célula atual,
 visitas e fronteira do BFS e caminho mínimo.
 
+## Temporizador
+
+Cada rodada tem um cronômetro que começa a contar assim que o labirinto é gerado. Ele não é afetado pela velocidade de animação escolhida com +/- — mede tempo real, não passos lógicos.
+
+No console é mostrado os tempos de cada etapa:
+
+DFS achou a saída — tempo até o DFS encontrar a saída;
+BFS achou o caminho — tempo até o menor caminho ser calculado (por BFS ou BFS bidirecional, o que estiver ativo na rodada);
+Chegou ao início — tempo até o personagem completar a volta pelo caminho mínimo;
+Chegou de novo na saída — tempo até o personagem refazer o caminho até a saída, encerrando a rodada.
+
 ## DFS versus BFS
 
 As duas buscas têm papéis diferentes na simulação:
@@ -97,6 +110,7 @@ As duas buscas têm papéis diferentes na simulação:
 | --- | --- | --- | --- |
 | DFS | Pilha (LIFO) | Aprofunda por um caminho e faz backtracking nos becos sem saída | Explorar o labirinto até encontrar a saída |
 | BFS | Fila (FIFO) | Visita os vértices por camadas, expandindo a fronteira | Encontrar o menor caminho entre a saída e o início |
+| BFS Bidirecional | Fila (FIFO) | Visita os vértices por camadas, expandindo as duas fronteiras, vindo do início e da saída | Encontrar o menor caminho entre a saída e o início |
 
 As cores da animação acompanham essas fases: azul escuro representa a área
 explorada pelo DFS, azul claro representa células já visitadas pelo BFS, roxo

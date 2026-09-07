@@ -4,10 +4,9 @@ Configurações globais do projeto: dimensões, cores e parâmetros de animaçã
 """
 
 # --- Dimensões do labirinto (em células) ---
-# Mantendo pequeno por enquanto, só para validar visualmente se DFS e BFS
-# estão corretos antes de mexer na UI/UX.
-COLS = 10
-ROWS = 7
+# Mude aqui direto pra testar mapas maiores/menores.
+COLS = 20
+ROWS = 15
 
 # Seed usada na primeira janela. None mantém a geração aleatória.
 DEFAULT_SEED = None
@@ -47,6 +46,13 @@ COLOR_CELL_PATH = (76, 201, 138)             # caminho ótimo encontrado pelo BF
 COLOR_CELL_START = (46, 139, 87)
 COLOR_CELL_GOAL = (196, 62, 62)
 COLOR_CHARACTER = (255, 255, 255)
+
+# Bidirecional: frente "a" sai da saída, frente "b" sai do início.
+COLOR_CELL_BIDIR_A = (176, 110, 61)          # visitado pela frente da saída
+COLOR_CELL_BIDIR_B = (69, 143, 137)          # visitado pela frente do início
+COLOR_CELL_BIDIR_FRONTIER_A = (222, 145, 66)  # fronteira da frente da saída
+COLOR_CELL_BIDIR_FRONTIER_B = (86, 199, 190)  # fronteira da frente do início
+COLOR_CELL_BIDIR_MEETING = (233, 89, 161)     # célula onde as duas frentes se encontraram
 
 COLOR_TEXT = (230, 230, 235)
 COLOR_TEXT_DIM = (140, 145, 160)
